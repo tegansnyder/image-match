@@ -78,7 +78,7 @@ class SignatureDatabaseBase(object):
         """
         raise NotImplementedError
 
-    def insert_single_record(self, rec):
+    def insert_single_record(self, rec, upsert_id=None):
         """Insert an image record.
 
         Must be implemented by derived class.
@@ -187,7 +187,7 @@ class SignatureDatabaseBase(object):
 
         self.gis = ImageSignature(n=n_grid, crop_percentiles=crop_percentile, *signature_args, **signature_kwargs)
 
-    def add_image(self, path, img=None, bytestream=False, metadata=None, refresh_after=False):
+    def add_image(self, path, img=None, upsert_id=None, bytestream=False, metadata=None, refresh_after=False):
         """Add a single image to the database
 
         Args:
@@ -197,6 +197,7 @@ class SignatureDatabaseBase(object):
                 a signature will be generated from data in img. If bytestream is False, but img is
                 not None, then img is assumed to be the URL or filesystem path. Thus, you can store
                 image records with a different 'path' than the actual image location (default None)
+            upser_id (Optional[string]): If passing an Elasticsearch _id then we will perform an upsert.
             bytestream (Optional[boolean]): will the image be passed as raw bytes?
                 That is, is the 'path_or_image' argument an in-memory image? If img is None but, this
                 argument will be ignored.  If img is not None, and bytestream is False, then the behavior
@@ -206,7 +207,7 @@ class SignatureDatabaseBase(object):
 
         """
         rec = make_record(path, self.gis, self.k, self.N, img=img, bytestream=bytestream, metadata=metadata)
-        self.insert_single_record(rec, refresh_after=refresh_after)
+        self.insert_single_record(rec, refresh_after=refresh_after, upsert_id=upsert_id)
 
     def search_image(self, path, all_orientations=False, bytestream=False, pre_filter=None):
         """Search for matches
